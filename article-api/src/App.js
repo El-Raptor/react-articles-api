@@ -1,26 +1,61 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Fragment, useState, useEffect } from 'react';
+import axios from 'axios';
+
+import GlobalStyles from './styles/GlobalStyles';
+import Layout from './Components/Layout';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  const [article, setArticle] = useState([]);
+
+  let getArticle = async () => {
+    let res = await axios.get(
+      "https://api.nytimes.com/svc/search/v2/articlesearch.json", {
+        params: {
+          'api-key': process.env.REACT_APP_SEARCH_ARTICLE_KEY,
+          'q': 'Sacramento',
+          'sort': 'newest'
+        }
+      }
+    );
+    setArticle(res.data.response.docs);
+  };
+
+  useEffect(() => {
+    getArticle();
+  });
+
+  function Article(props) {
+    const articleList = article.map((a) => 
+      <li key={a['_id']}>
+        <a href={a['web_url']}>{a['headline']['main']}</a>        
+      </li>
+    )
+
+    return articleList;
+  }
+
+  if (!article) {
+    return (
+      <Fragment>
+        <Layout>
+          <h1>Nenhum artigo encontrado!</h1>
+        </Layout>
+
+        <GlobalStyles />
+      </Fragment>
+    )
+  }
+  else {
+    return (
+      <Fragment>
+        <Layout >
+          <Article />
+        </Layout>
+
+        <GlobalStyles />
+      </Fragment>
+    );
+  }
 }
 
 export default App;
